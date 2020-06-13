@@ -1,0 +1,21 @@
+[
+    {"model": "movies.genre", "fields": {"id": 28, "kr_genre": "액션", "en_genre": "Action"}},
+    {"model": "movies.genre", "fields": {"id": 12, "kr_genre": "모험", "en_genre": "Adventure"}},
+    {"model": "movies.genre", "fields": {"id": 16, "kr_genre": "애니메이션", "en_genre": "Animation"}},
+    {"model": "movies.genre", "fields": {"id": 35, "kr_genre": "코미디", "en_genre": "Comedy"}},
+    {"model": "movies.genre", "fields": {"id": 80, "kr_genre": "범죄", "en_genre": "Crime"}},
+    {"model": "movies.genre", "fields": {"id": 99, "kr_genre": "다큐멘터리", "en_genre": "Documentary"}},
+    {"model": "movies.genre", "fields": {"id": 18, "kr_genre": "드라마", "en_genre": "Drama"}},
+    {"model": "movies.genre", "fields": {"id": 10751, "kr_genre": "가족", "en_genre": "Family"}},
+    {"model": "movies.genre", "fields": {"id": 14, "kr_genre": "판타지", "en_genre": "Fantasy"}},
+    {"model": "movies.genre", "fields": {"id": 36, "kr_genre": "역사", "en_genre": "History"}},
+    {"model": "movies.genre", "fields": {"id": 27, "kr_genre": "공포", "en_genre": "Horror"}},
+    {"model": "movies.genre", "fields": {"id": 10402, "kr_genre": "음악", "en_genre": "Music"}},
+    {"model": "movies.genre", "fields": {"id": 9648, "kr_genre": "미스터리", "en_genre": "Mystery"}},
+    {"model": "movies.genre", "fields": {"id": 10749, "kr_genre": "로맨스", "en_genre": "Romance"}},
+    {"model": "movies.genre", "fields": {"id": 878, "kr_genre": "SF", "en_genre": "Science Fiction"}},
+    {"model": "movies.genre", "fields": {"id": 10770, "kr_genre": "TV 영화", "en_genre": "TV Movie"}},
+    {"model": "movies.genre", "fields": {"id": 53, "kr_genre": "스릴러", "en_genre": "Thriller"}},
+    {"model": "movies.genre", "fields": {"id": 10752, "kr_genre": "전쟁", "en_genre": "War"}},
+    {"model": "movies.genre", "fields": {"id": 37, "kr_genre": "서부", "en_genre": "Western"}}
+]
