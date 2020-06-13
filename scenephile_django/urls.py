@@ -18,11 +18,12 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('accounts/', include('accounts.urls')),
     path('articles/', include('articles.urls')),
     path('movies/', include('movies.urls')),
     path('actors/', include('actors.urls')),
 
     # rest-auth
     path('rest-auth/', include('rest_auth.urls')),
-    path('reat-auth/signup/', include('rest_auth.registration.urls')),
+    path('rest-auth/signup/', include('rest_auth.registration.urls')),
 ]
