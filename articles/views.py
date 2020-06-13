@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 
+from actors.models import Actor
 from .models import Article, ArticleComment, ArticleLike
 from .serializers import ArticleSerializer, ArticleCommentSerializer
 
@@ -9,18 +10,31 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 
 class ArticleListView(APIView):
-    # ArticleList
+    # ArticleList (피드)
     def get(self, request):
-        articles = Article.objects.all()
-        serializer = ArticleSerializer(articles, many=True)
+        like_actors = Actor.objects.filter(like_users=request.user)
+        articles = Article.objects.none()
+        for like_actor in like_actors:
+            articles = articles.union(like_actor.articles.all())
+        serializer = ArticleSerializer(articles.order_by('-created_at'), many=True)
         return Response(serializer.data)
 
     # ArticleCreate
     def post(self, request):
+        actorId = request.data['actorId']
+        actor = get_object_or_404(Actor, id=actorId)
         serializer = ArticleSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
-            serializer.save(user=request.user)
+            serializer.save(user=request.user, actor=actor)
             return Response(serializer.data)
+        return Response(serializer.errors)
+
+class ArticlePopularListView(APIView):
+    # ArticlePopularList (인기)
+    def get(self, request):
+        articles = Article.objects.all()
+        articles = sorted(articles, key=lambda article: article.popularity, reverse=True)
+        serializer = ArticleSerializer(articles, many=True)
         return Response(serializer.data)
 
 class ArticleDetailView(APIView):
@@ -66,7 +80,7 @@ class ArticleCommentListView(APIView):
         if serializer.is_valid(raise_exception=True):
             serializer.save(user=request.user, article=article)
             return Response(serializer.data)
-        return Response(serializer.data)
+        return Response(serializer.errors)
 
 class ArticleCommentDetailView(APIView):
     def get_comment(self, comment_pk):
@@ -92,17 +106,24 @@ class ArticleLikeView(APIView):
         return get_object_or_404(Article, pk=article_pk)
 
     # Like
-    def get(self, request, article_pk):
+    def post(self, request, article_pk):
         article = self.get_article(article_pk)
         if article.like_users.filter(pk=request.user.id).exists():
-            # article.like_users.remove(request.user)
             articlelike = get_object_or_404(ArticleLike, user=request.user, article=article)
             articlelike.delete()
         else:
-            # article.like_users.add(request.user)
             articlelike = ArticleLike()
             articlelike.user = request.user
             articlelike.article = article
             articlelike.save()
         return Response()
 
+class ArticleSearchView(APIView):
+    def get(self, request, keyword):
+        searched_articles = Article.objects.filter(content__icontains=keyword)
+        actors = Actor.objects.filter(name__icontains=keyword)
+        for actor in actors:
+            searched_articles = searched_articles.union(actor.articles.all())
+        searched_articles = sorted(searched_articles, key=lambda article: article.popularity, reverse=True)
+        serializer = ArticleSerializer(searched_articles, many=True)
+        return Response(serializer.data)
