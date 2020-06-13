@@ -1,7 +1,9 @@
 from django.shortcuts import render, get_object_or_404
 from django.views.generic import ListView, DetailView
+from django.conf import settings
 
-from .models import Movie, Review, ReviewComment
+from actors.models import Actor
+from .models import Movie, Review, Genre, ReviewComment, MovieGenre, MovieActor
 from .serializers import MovieSerializer, ReviewSerializer, ReviewCommentSerializer
 
 from rest_framework.decorators import api_view, permission_classes
@@ -9,21 +11,87 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 
+import requests
+import random
+
+API_KEY_LIST = [settings.THEMOVIEDB_API_KEY_SOOM, settings.THEMOVIEDB_API_KEY_SUN]
+API_KEY = random.choice(API_KEY_LIST)
+
+# MovieCreate & ConnectActor
+def movie_create(actorId):
+    data = requests.get(f'https://api.themoviedb.org/3/person/{actorId}/movie_credits?api_key={API_KEY}&language=ko-KR').json()
+    null = False
+    for movie in data['cast']: # 영화별로 순회하면서
+        if not movie['poster_path']:
+            break
+        if not Movie.objects.filter(id=movie['id']):
+            # 1. 영화 기본정보 저장
+            movie_data = {
+                'id': movie['id'],
+                'original_title': movie['original_title'],
+                'overview': movie['overview'],
+                'poster_path': movie['poster_path'],
+                'release_date': movie['release_date'],                
+            }
+            serializer = MovieSerializer(data=movie_data)
+            if serializer.is_valid(raise_exception=True):
+                serializer.save()
+
+            # 2. 영화-장르 관계 저장
+            for genre_id in movie['genre_ids']:
+                movie_for_genre = get_object_or_404(Movie, pk=movie_data['id'])
+                genre_for_movie = get_object_or_404(Genre, pk=genre_id)
+                moviegenre = MovieGenre()
+                moviegenre.movie = movie_for_genre
+                moviegenre.genre = genre_for_movie
+                moviegenre.save()
+
+        # 3. 영화-배우 관계 저장
+        movie_for_actor = get_object_or_404(Movie, pk=movie['id'])
+        actor_for_movie = get_object_or_404(Actor, pk=actorId)
+        movieactor = MovieActor()
+        movieactor.movie = movie_for_actor
+        movieactor.actor = actor_for_movie
+        movieactor.character = movie['character']
+        movieactor.save()
+
+    return Response()
+
+
 class MovieListView(APIView):
-    model = Movie
-    
     # MovieList(피드)
     def get(self, request):
         movies = Movie.objects.all()
         serializer = MovieSerializer(movies, many=True)
         return Response(serializer.data)
-        
-    # MovieCreate
+
+    # 영화 검색을 통해 해당 영화 리뷰 작성할 경우 시
     def post(self, request):
-        serializer = MovieSerializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            return Response(serializer.data)
+        movieId = request.data['movieId']
+        data = requests.get(f'https://api.themoviedb.org/3/movie/{movieid}?api_key={API_KEY}&language=ko-KR').json()
+        if not movie['poster_path']:
+            return Response()
+        if not Movie.objects.filter(id=movieId):
+            movie_data = {
+                'id': data['id'],
+                'original_title': data['original_title'],
+                'overview': data['overview'],
+                'poster_path': data['poster_path'],
+                'release_date': data['release_date'],                
+            }
+            serializer = MovieSerializer(data=movie_data)
+            if serializer.is_valid(raise_exception=True):
+                serializer.save()
+
+            # 2. 영화-장르 관계 저장
+            for genre_id in movie['genre_ids']:
+                movie_for_genre = get_object_or_404(Movie, pk=movie_data['id'])
+                genre_for_movie = get_object_or_404(Genre, pk=genre_id)
+                moviegenre = MovieGenre()
+                moviegenre.movie = movie_for_genre
+                moviegenre.genre = genre_for_movie
+                moviegenre.save()       
+        return Response()
 
 class ReviewListView(APIView):
     def get_movie(self, movie_pk):
