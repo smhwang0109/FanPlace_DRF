@@ -3,7 +3,7 @@ from django.views.generic import ListView, DetailView
 from django.conf import settings
 
 from actors.models import Actor
-from .models import Movie, Review, Genre, ReviewComment, MovieGenre, MovieActor
+from .models import Movie, Genre, MovieGenre, MovieActor, Review, ReviewComment 
 from .serializers import MovieSerializer, ReviewSerializer, ReviewCommentSerializer
 
 from rest_framework.decorators import api_view, permission_classes
@@ -17,7 +17,7 @@ import random
 API_KEY_LIST = [settings.THEMOVIEDB_API_KEY_SOOM, settings.THEMOVIEDB_API_KEY_SUN]
 API_KEY = random.choice(API_KEY_LIST)
 
-# MovieCreate & ConnectActor
+# MovieCreate & ConnectActor(Actor 생성 이후에 실행될 함수)
 def movie_create(actorId):
     data = requests.get(f'https://api.themoviedb.org/3/person/{actorId}/movie_credits?api_key={API_KEY}&language=ko-KR').json()
     null = False
@@ -31,7 +31,8 @@ def movie_create(actorId):
                 'original_title': movie['original_title'],
                 'overview': movie['overview'],
                 'poster_path': movie['poster_path'],
-                'release_date': movie['release_date'],                
+                'release_date': movie['release_date'],
+                'popularity': movie['popularity']                
             }
             serializer = MovieSerializer(data=movie_data)
             if serializer.is_valid(raise_exception=True):
@@ -57,6 +58,7 @@ def movie_create(actorId):
 
     return Response()
 
+##################################
 
 class MovieListView(APIView):
     # MovieList(피드)
@@ -77,7 +79,8 @@ class MovieListView(APIView):
                 'original_title': data['original_title'],
                 'overview': data['overview'],
                 'poster_path': data['poster_path'],
-                'release_date': data['release_date'],                
+                'release_date': data['release_date'],
+                'popularity': data['popularity']                
             }
             serializer = MovieSerializer(data=movie_data)
             if serializer.is_valid(raise_exception=True):
@@ -90,8 +93,11 @@ class MovieListView(APIView):
                 moviegenre = MovieGenre()
                 moviegenre.movie = movie_for_genre
                 moviegenre.genre = genre_for_movie
-                moviegenre.save()       
+                moviegenre.save()
+
         return Response()
+
+##################################
 
 class ReviewListView(APIView):
     def get_movie(self, movie_pk):
@@ -129,7 +135,7 @@ class ReviewDetailView(APIView):
         review = self.get_review(review_pk)
         review.delete()
         return Response()
-            
+
 class ReviewCommentListView(APIView):
     def get_review(self, review_pk):
         return get_object_or_404(Review, pk=review_pk)

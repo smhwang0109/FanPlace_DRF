@@ -1,6 +1,8 @@
 from django.db import models
 from django.conf import settings
 
+from actors.models import Actor
+
 class Article(models.Model):
     title = models.CharField(max_length=200)
     content = models.TextField()
@@ -8,13 +10,13 @@ class Article(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     video_path = models.CharField(max_length=1000, null=True)
     # image_path = models.CharField(max_length=1000, null=True)
+    actors = models.ForeignKey(Actor, on_delete=models.CASCADE, related_name='articles')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='articles')
     like_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='like_articles', through='ArticleLike')
 
 class ArticleLike(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     article = models.ForeignKey(Article, on_delete=models.CASCADE)
-    # objects = ArticleLikeManager()
 
 class ArticleComment(models.Model):
     content = models.TextField()

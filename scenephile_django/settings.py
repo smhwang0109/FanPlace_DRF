@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 
 import os
+from decouple import config
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -152,3 +153,6 @@ REST_FRAMEWORK = {
 
 CORS_ORIGIN_ALLOW_ALL = True
 # CORS_ORIGIN_WHITELIST = []
+
+THEMOVIEDB_API_KEY_SOOM = config('THEMOVIEDB_API_KEY_SOOM') 
+THEMOVIEDB_API_KEY_SUN = config('THEMOVIEDB_API_KEY_SUN')
