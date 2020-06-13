@@ -13,7 +13,7 @@ class Movie(models.Model):
     overview = models.TextField()
     poster_path = models.TextField()
     release_date = models.CharField(max_length=200)
-    popularity = models.CharField(max_length=200)
+    popularity = models.FloatField()
     actors = models.ManyToManyField(Actor, related_name='movies', through='MovieActor')
     genres = models.ManyToManyField(Genre, related_name='movies', through='MovieGenre')
 

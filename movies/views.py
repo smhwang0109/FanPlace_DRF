@@ -37,6 +37,8 @@ def movie_create(actorId):
             serializer = MovieSerializer(data=movie_data)
             if serializer.is_valid(raise_exception=True):
                 serializer.save()
+            else:
+                return Response(serializer.errors)
 
             # 2. 영화-장르 관계 저장
             for genre_id in movie['genre_ids']:
@@ -59,19 +61,24 @@ def movie_create(actorId):
     return Response()
 
 ##################################
+# Movie
 
 class MovieListView(APIView):
     # MovieList(피드)
     def get(self, request):
-        movies = Movie.objects.all()
-        serializer = MovieSerializer(movies, many=True)
+        like_actors = Actor.objects.filter(like_users=request.user)
+        movies = Movie.objects.none()
+        for actor in like_actors:
+            movies = movies.union(Movie.objects.filter(actors=actor))
+        serializer = MovieSerializer(movies.order_by('-popularity'), many=True)
         return Response(serializer.data)
 
     # 영화 검색을 통해 해당 영화 리뷰 작성할 경우 시
     def post(self, request):
+        null = False
         movieId = request.data['movieId']
-        data = requests.get(f'https://api.themoviedb.org/3/movie/{movieid}?api_key={API_KEY}&language=ko-KR').json()
-        if not movie['poster_path']:
+        data = requests.get(f'https://api.themoviedb.org/3/movie/{movieId}?api_key={API_KEY}&language=ko-KR').json()
+        if not data['poster_path']:
             return Response()
         if not Movie.objects.filter(id=movieId):
             movie_data = {
@@ -85,9 +92,11 @@ class MovieListView(APIView):
             serializer = MovieSerializer(data=movie_data)
             if serializer.is_valid(raise_exception=True):
                 serializer.save()
+            else:
+                return Response(serializer.errors)
 
             # 2. 영화-장르 관계 저장
-            for genre_id in movie['genre_ids']:
+            for genre_id in data['genre_ids']:
                 movie_for_genre = get_object_or_404(Movie, pk=movie_data['id'])
                 genre_for_movie = get_object_or_404(Genre, pk=genre_id)
                 moviegenre = MovieGenre()
@@ -98,6 +107,7 @@ class MovieListView(APIView):
         return Response()
 
 ##################################
+# Review
 
 class ReviewListView(APIView):
     def get_movie(self, movie_pk):
@@ -117,6 +127,7 @@ class ReviewListView(APIView):
         if serializer.is_valid(raise_exception=True):
             serializer.save(user=request.user, movie=movie)
             return Response(serializer.data)
+        return Response(serializer.errors)
 
 class ReviewDetailView(APIView):
     def get_review(self, review_pk):
@@ -129,6 +140,7 @@ class ReviewDetailView(APIView):
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             return Response(serializer.data)
+        return Response(serializer.errors)
 
     # ReviewDelete
     def delete(self, request, movie_pk, review_pk):
@@ -136,24 +148,28 @@ class ReviewDetailView(APIView):
         review.delete()
         return Response()
 
+##################################
+# ReviewComment
+
 class ReviewCommentListView(APIView):
     def get_review(self, review_pk):
         return get_object_or_404(Review, pk=review_pk)
 
     # ReviewCommentList
     def get(self, request, movie_pk, review_pk):
-        review = self.get_review(self, review_pk)
+        review = self.get_review(review_pk)
         comments = review.comments.all()
-        serializer = ReviewCommentSerializer(review, many=True)
+        serializer = ReviewCommentSerializer(comments, many=True)
         return Response(serializer.data)
 
     # ReviewCommentCreate
     def post(self, request, movie_pk, review_pk):
-        review = self.get_review(self, review_pk)
+        review = self.get_review(review_pk)
         serializer = ReviewCommentSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save(user=request.user, review=review)
             return Response(serializer.data)
+        return Response(serializer.errors)
 
 class ReviewCommentDetailView(APIView):
     def get_comment(self, comment_pk):
@@ -166,6 +182,7 @@ class ReviewCommentDetailView(APIView):
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             return Response(serializer.data)
+        return Response(serializer.errors)
 
     # ReviewCommentDelete
     def delete(self, request, movie_pk, review_pk, comment_pk):
