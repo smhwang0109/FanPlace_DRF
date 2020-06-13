@@ -55,14 +55,12 @@ class ActorListView(APIView):
             'profile_path': data['profile_path'],
             'popularity': data['popularity']
         }
-
-
         serializer = ActorSerializer(data=actor_data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             movie_create(actorId)
             return Response(serializer.data)
-        return Response(serializer.data)
+        return Response(serializer.errors)
 
 class ActorDetailView(APIView):
     def get_actor(self, actor_pk):
@@ -79,7 +77,7 @@ class ActorLikeView(APIView):
         return get_object_or_404(Actor, pk=actor_pk)
 
     # Like
-    def get(self, request, actor_pk):
+    def post(self, request, actor_pk):
         actor = self.get_actor(actor_pk)
         if actor.like_users.filter(pk=request.user.id).exists():
             actorlike = get_object_or_404(ActorLike, user=request.user, actor=actor)
