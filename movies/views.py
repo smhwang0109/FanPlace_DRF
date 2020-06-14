@@ -23,7 +23,7 @@ def movie_create(actorId):
     null = False
     for movie in data['cast']: # 영화별로 순회하면서
         if not movie['poster_path']:
-            break
+            continue        
         if not Movie.objects.filter(id=movie['id']):
             # 1. 영화 기본정보 저장
             movie_data = {
@@ -80,6 +80,7 @@ class MovieListView(APIView):
         data = requests.get(f'https://api.themoviedb.org/3/movie/{movieId}?api_key={API_KEY}&language=ko-KR').json()
         if not data['poster_path']:
             return Response()
+
         if not Movie.objects.filter(id=movieId):
             movie_data = {
                 'id': data['id'],
@@ -96,9 +97,9 @@ class MovieListView(APIView):
                 return Response(serializer.errors)
 
             # 2. 영화-장르 관계 저장
-            for genre_id in data['genre_ids']:
+            for genre in data['genres']:
                 movie_for_genre = get_object_or_404(Movie, pk=movie_data['id'])
-                genre_for_movie = get_object_or_404(Genre, pk=genre_id)
+                genre_for_movie = get_object_or_404(Genre, pk=genre['id'])
                 moviegenre = MovieGenre()
                 moviegenre.movie = movie_for_genre
                 moviegenre.genre = genre_for_movie
