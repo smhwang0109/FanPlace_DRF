@@ -25,7 +25,7 @@ def isHangul(text):
 class ActorListView(APIView):
     # ActorList
     def get(self, request):
-        actors = Actor.objects.all()
+        actors = Actor.objects.filter(like_users=request.user)
         serializer = ActorSerializer(actors, many=True)
         return Response(serializer.data)
 
