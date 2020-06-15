@@ -60,6 +60,39 @@ def movie_create(actorId):
 
     return Response()
 
+# 영화 검색을 통해 해당 영화 리뷰 작성할 경우 시
+def movie_create_one(movieId):
+    null = False
+    data = requests.get(f'https://api.themoviedb.org/3/movie/{movieId}?api_key={API_KEY}&language=ko-KR').json()
+    if not data['poster_path']:
+        return Response()
+
+    if not Movie.objects.filter(id=movieId):
+        movie_data = {
+            'id': data['id'],
+            'original_title': data['original_title'],
+            'overview': data['overview'],
+            'poster_path': data['poster_path'],
+            'release_date': data['release_date'],
+            'popularity': data['popularity']                
+        }
+        serializer = MovieSerializer(data=movie_data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+        else:
+            return Response(serializer.errors)
+
+        # 2. 영화-장르 관계 저장
+        for genre in data['genres']:
+            movie_for_genre = get_object_or_404(Movie, pk=movie_data['id'])
+            genre_for_movie = get_object_or_404(Genre, pk=genre['id'])
+            moviegenre = MovieGenre()
+            moviegenre.movie = movie_for_genre
+            moviegenre.genre = genre_for_movie
+            moviegenre.save()
+
+    return Response()
+
 ##################################
 # Movie
 
@@ -72,40 +105,6 @@ class MovieListView(APIView):
             movies = movies.union(Movie.objects.filter(actors=actor))
         serializer = MovieSerializer(movies.order_by('-popularity'), many=True)
         return Response(serializer.data)
-
-    # 영화 검색을 통해 해당 영화 리뷰 작성할 경우 시
-    def post(self, request):
-        null = False
-        movieId = request.data['movieId']
-        data = requests.get(f'https://api.themoviedb.org/3/movie/{movieId}?api_key={API_KEY}&language=ko-KR').json()
-        if not data['poster_path']:
-            return Response()
-
-        if not Movie.objects.filter(id=movieId):
-            movie_data = {
-                'id': data['id'],
-                'original_title': data['original_title'],
-                'overview': data['overview'],
-                'poster_path': data['poster_path'],
-                'release_date': data['release_date'],
-                'popularity': data['popularity']                
-            }
-            serializer = MovieSerializer(data=movie_data)
-            if serializer.is_valid(raise_exception=True):
-                serializer.save()
-            else:
-                return Response(serializer.errors)
-
-            # 2. 영화-장르 관계 저장
-            for genre in data['genres']:
-                movie_for_genre = get_object_or_404(Movie, pk=movie_data['id'])
-                genre_for_movie = get_object_or_404(Genre, pk=genre['id'])
-                moviegenre = MovieGenre()
-                moviegenre.movie = movie_for_genre
-                moviegenre.genre = genre_for_movie
-                moviegenre.save()
-
-        return Response()
 
 class ActorMovieListView(APIView):
     # 출연작
@@ -125,12 +124,16 @@ class ReviewListView(APIView):
     # ReviewList
     def get(self, request, movie_pk):
         movie = self.get_movie(movie_pk)
-        reviews = movie.reviews.all()
+        reviews = movie.reviews.order_by('-created_at')
         serializer = ReviewSerializer(reviews, many=True)
         return Response(serializer.data)
     
     # ReviewCreate
     def post(self, request, movie_pk):
+        # 만약 해당 영화가 우리 DB에 없다면 => DB에 저장
+        if not Movie.objects.filter(pk=movie_pk):
+            movie_create_one(movie_pk)
+
         movie = self.get_movie(movie_pk)
         serializer = ReviewSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
