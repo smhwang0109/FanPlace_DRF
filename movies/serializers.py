@@ -20,7 +20,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def get_comments(self, obj):
-        return django_serializers.serialize('json', obj.comments.all(), ensure_ascii=False)
+        return django_serializers.serialize('json', obj.comments.order_by('-created_at'), ensure_ascii=False)
 
 class ReviewCommentSerializer(serializers.ModelSerializer):
     user = UserSerializer(required=False)
