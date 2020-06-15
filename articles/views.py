@@ -71,6 +71,7 @@ class ArticleCommentListView(APIView):
     # CommentCreate
     def post(self, request, article_pk):
         article = self.get_article(article_pk)
+        request.data['username'] = request.user.username
         serializer = ArticleCommentSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save(user=request.user, article=article)

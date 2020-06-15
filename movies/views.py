@@ -166,6 +166,7 @@ class ReviewCommentListView(APIView):
     # ReviewCommentCreate
     def post(self, request, movie_pk, review_pk):
         review = self.get_review(review_pk)
+        request.data['username'] = request.user.username
         serializer = ReviewCommentSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save(user=request.user, review=review)
