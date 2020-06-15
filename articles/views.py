@@ -39,6 +39,15 @@ class ArticlePopularListView(APIView):
         serializer = ArticleSerializer(articles, many=True)
         return Response(serializer.data)
 
+class ActorArticleListView(APIView):
+    # 배우 게시물
+    def get(self, request, actorId):
+        actor = get_object_or_404(Actor, id=actorId)
+        articles = actor.articles.all()
+        articles = sorted(articles, key=lambda article: article.popularity, reverse=True)
+        serializer = ArticleSerializer(articles, many=True)
+        return Response(serializer.data)
+
 class ArticleDetailView(APIView):
     def get_article(self, article_pk):
         return get_object_or_404(Article, pk=article_pk)

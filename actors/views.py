@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from django.conf import settings
+from django.http import JsonResponse
 
 from movies.views import movie_create
 from .models import Actor, ActorLike
@@ -84,16 +85,34 @@ class ActorLikeView(APIView):
     def get_actor(self, actor_pk):
         return get_object_or_404(Actor, pk=actor_pk)
 
+    # LikeData
+    def get(self, request, actor_pk):
+        actor = self.get_actor(actor_pk)
+        if actor.like_users.filter(pk=request.user.id).exists():
+            is_like = True
+        else:
+            is_like = False
+        data = {
+            'like_count': actor.like_users.count(),
+            'is_like': is_like
+        }
+        return JsonResponse(data)
+
     # Like
     def post(self, request, actor_pk):
         actor = self.get_actor(actor_pk)
         if actor.like_users.filter(pk=request.user.id).exists():
             actorlike = get_object_or_404(ActorLike, user=request.user, actor=actor)
             actorlike.delete()
+            is_like = False
         else:
             actorlike = ActorLike()
             actorlike.user = request.user
             actorlike.actor = actor
             actorlike.save()
-        return Response()
-
+            is_like = True
+        data = {
+            'like_count': actor.like_users.count(),
+            'is_like': is_like
+        }
+        return JsonResponse(data)
