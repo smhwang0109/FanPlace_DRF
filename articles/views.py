@@ -1,3 +1,5 @@
+#-*- coding:utf-8 -*-
+
 from django.shortcuts import render, get_object_or_404
 
 from actors.models import Actor
@@ -76,9 +78,12 @@ class ArticleCommentListView(APIView):
     # CommentCreate
     def post(self, request, article_pk):
         article = self.get_article(article_pk)
+        # request.data['content'] = request.data['content'].decode('cp949').encode('utf-8')
+        # request.data['content'] = request.data['content'].decode('cp949').encode('utf-8')
         serializer = ArticleCommentSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save(user=request.user, article=article)
+            print(serializer.data)
             return Response(serializer.data)
         return Response(serializer.errors)
 
