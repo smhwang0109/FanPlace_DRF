@@ -4,7 +4,8 @@ from . import views
 app_name = 'accounts'
 
 urlpatterns = [
-    path('<int:user_pk>/', views.UserDetailView.as_view(), name='profile'),
+    path('profile/', views.MyProfileView.as_view(), name="my_profile"),
+    path('profile/<int:user_pk>/', views.UserDetailView.as_view(), name='profile'),
     path('follow/<int:to_user_pk>/', views.UserFollowView.as_view(), name='user_follow'),
     path('search/<str:keyword>/', views.UserSearchView.as_view(), name='user_search')
 ]
