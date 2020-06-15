@@ -106,6 +106,14 @@ class MovieListView(APIView):
         serializer = MovieSerializer(movies.order_by('-popularity'), many=True)
         return Response(serializer.data)
 
+class ActorMovieListView(APIView):
+    # 출연작
+    def get(self, request, actorId):
+        actor = get_object_or_404(Actor, id=actorId)
+        movies = actor.movies.all()
+        serializer = MovieSerializer(movies.order_by('-popularity'), many=True)
+        return Response(serializer.data)
+
 ##################################
 # Review
 
