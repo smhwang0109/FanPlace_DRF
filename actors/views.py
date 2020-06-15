@@ -62,6 +62,14 @@ class ActorListView(APIView):
             return Response(serializer.data)
         return Response(serializer.errors)
 
+class ActorPopularListView(APIView):
+    # ActorPopularList (인기)
+    def get(self, request):
+        actors = Actor.objects.all()
+        actors = sorted(actors, key=lambda actor: actor.popularity, reverse=True)
+        serializer = ActorSerializer(actors, many=True)
+        return Response(serializer.data)
+
 class ActorDetailView(APIView):
     def get_actor(self, actor_pk):
         return get_object_or_404(Actor, pk=actor_pk)
