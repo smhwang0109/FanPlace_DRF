@@ -33,6 +33,8 @@ class ActorListView(APIView):
     # ActorCreate
     def post(self, request):
         actorId = request.data['actorId']
+        if Actor.objects.all().filter(pk=actorId).exists():
+            return Response()
         data = requests.get(f'https://api.themoviedb.org/3/person/{actorId}?api_key={API_KEY}&language=ko-KR').json()
         
         null = ''

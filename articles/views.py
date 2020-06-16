@@ -109,6 +109,19 @@ class ArticleCommentDetailView(APIView):
 class ArticleLikeView(APIView):
     def get_article(self, article_pk):
         return get_object_or_404(Article, pk=article_pk)
+    
+    # LikeData
+    def get(self, request, actor_pk):
+        actor = self.get_actor(actor_pk)
+        if actor.like_users.filter(pk=request.user.id).exists():
+            is_like = True
+        else:
+            is_like = False
+        data = {
+            'like_count': actor.like_users.count(),
+            'is_like': is_like
+        }
+        return JsonResponse(data)
 
     # Like
     def post(self, request, article_pk):
@@ -116,12 +129,39 @@ class ArticleLikeView(APIView):
         if article.like_users.filter(pk=request.user.id).exists():
             articlelike = get_object_or_404(ArticleLike, user=request.user, article=article)
             articlelike.delete()
+            is_like = False
         else:
             articlelike = ArticleLike()
             articlelike.user = request.user
             articlelike.article = article
             articlelike.save()
-        return Response()
+            is_like = True
+        data = {
+            'like_count': article.like_users.count(),
+            'is_like': is_like
+        }
+        return JsonResponse(data)
+
+
+    # Like
+    def post(self, request, actor_pk):
+        actor = self.get_actor(actor_pk)
+        if actor.like_users.filter(pk=request.user.id).exists():
+            actorlike = get_object_or_404(ActorLike, user=request.user, actor=actor)
+            actorlike.delete()
+            is_like = False
+        else:
+            actorlike = ActorLike()
+            actorlike.user = request.user
+            actorlike.actor = actor
+            actorlike.save()
+            is_like = True
+        data = {
+            'like_count': actor.like_users.count(),
+            'is_like': is_like
+        }
+        return JsonResponse(data)
+
 
 class ArticleSearchView(APIView):
     def get(self, request, keyword):
