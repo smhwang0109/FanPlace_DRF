@@ -9,11 +9,11 @@ class Genre(models.Model):
 
 class Movie(models.Model):
     id = models.IntegerField(primary_key=True)
-    original_title = models.CharField(max_length=200)
+    original_title = models.CharField(max_length=200, null=True)
     overview = models.TextField(null=True, blank=True)
-    poster_path = models.TextField()
-    release_date = models.CharField(max_length=200)
-    popularity = models.FloatField()
+    poster_path = models.TextField(null=True)
+    release_date = models.CharField(max_length=200, null=True)
+    popularity = models.FloatField(null=True)
     actors = models.ManyToManyField(Actor, related_name='movies', through='MovieActor')
     genres = models.ManyToManyField(Genre, related_name='movies', through='MovieGenre')
 

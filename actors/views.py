@@ -23,47 +23,40 @@ def isHangul(text):
     hanCount = len(re.findall(u"[\u3130-\u318F\uAC00-\uD7A3]+", encText))
     return hanCount > 0
 
+def actor_create(actor_id):
+
+    data = requests.get(f'https://api.themoviedb.org/3/person/{actor_id}?api_key={API_KEY}&language=ko-KR').json()
+    
+    null = ''
+
+    for s in data['also_known_as']:
+        if isHangul(s):
+            name = s
+            break
+    else:
+        name = data['name']
+    
+    actor_data = {
+        'id': data['id'],
+        'name': name,
+        'birthday': data['birthday'],
+        'deathday': data['deathday'],
+        'gender': data['gender'],
+        'profile_path': data['profile_path'],
+        'popularity': data['popularity']
+    }
+    serializer = ActorSerializer(data=actor_data)
+    if serializer.is_valid(raise_exception=True):
+        serializer.save()
+        movie_create(actor_id)
+        return Response(serializer.data)
+    return Response(serializer.errors)
+
 class ActorListView(APIView):
-    # ActorList
     def get(self, request):
         actors = Actor.objects.filter(like_users=request.user)
         serializer = ActorSerializer(actors, many=True)
         return Response(serializer.data)
-
-    # ActorCreate
-    def post(self, request):
-        actorId = request.data['actorId']
-        if Actor.objects.all().filter(pk=actorId).exists():
-            return Response()
-        data = requests.get(f'https://api.themoviedb.org/3/person/{actorId}?api_key={API_KEY}&language=ko-KR').json()
-        
-        null = ''
-
-        if data['place_of_birth'].split()[-1] == 'Korea':
-            for s in data['also_known_as']:
-                if isHangul(s):
-                    name = s
-                    break
-            else:
-                name = data['name']
-        else:
-            name = data['name']
-        
-        actor_data = {
-            'id': data['id'],
-            'name': name,
-            'birthday': data['birthday'],
-            'deathday': data['deathday'],
-            'gender': data['gender'],
-            'profile_path': data['profile_path'],
-            'popularity': data['popularity']
-        }
-        serializer = ActorSerializer(data=actor_data)
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            movie_create(actorId)
-            return Response(serializer.data)
-        return Response(serializer.errors)
 
 class ActorPopularListView(APIView):
     # ActorPopularList (인기)
@@ -79,9 +72,17 @@ class ActorDetailView(APIView):
     
     # ActorDetail
     def get(self, request, actor_pk):
+        if not Actor.objects.all().filter(pk=actor_pk).exists():
+            actor_create(actor_pk)
         actor = self.get_actor(actor_pk)
         serializer = ActorSerializer(actor)
-        return Response(serializer.data)
+        serializer_data = serializer.data
+        if request.user in actor.like_users.all():
+            is_like = True
+        else:
+            is_like = False
+        serializer_data['is_like'] = is_like 
+        return Response(serializer_data)
    
 class ActorLikeView(APIView):
     def get_actor(self, actor_pk):
