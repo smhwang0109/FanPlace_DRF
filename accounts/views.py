@@ -5,27 +5,20 @@ from .serializers import UserSerializer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-class MyProfileView(APIView):
-    def get(self, request):
-        user = request.user
-        serializer = UserSerializer(user)
-        serializer_data = serializer.data
-        followers = []
-        for follower in user.followers.all():
-            followers.append(follower.id)
-        serializer_data['followers'] = followers
-        serializer_data['followers_cnt'] = user.followers.count()
-        serializer_data['followings_cnt'] = user.followings.count()
-        return Response(serializer_data)
-
 class UserDetailView(APIView):
     def get(self, request, user_pk):
-        user = get_object_or_404(User, pk=user_pk)
+        if user_pk == '99999999' or user_pk == request.user.pk:
+            isMe = True
+            user = request.user
+        else:
+            isMe = False
+            user = get_object_or_404(User, pk=user_pk)
         serializer = UserSerializer(user)
         serializer_data = serializer.data
         followers = []
         for follower in user.followers.all():
             followers.append(follower.id)
+        serializer_data['isMe'] = isMe
         serializer_data['followers'] = followers
         serializer_data['followers_cnt'] = user.followers.count()
         serializer_data['followings_cnt'] = user.followings.count()
