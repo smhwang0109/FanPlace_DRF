@@ -15,6 +15,7 @@ class Article(models.Model):
     video_path = models.CharField(max_length=1000, null=True)
     # image_path = models.CharField(max_length=1000, null=True)
     actor = models.ForeignKey(Actor, on_delete=models.CASCADE, related_name='articles')
+    username = models.CharField(max_length=200, default='default_username')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='articles')
     like_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='like_articles', through='ArticleLike')
 

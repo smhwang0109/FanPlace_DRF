@@ -1,6 +1,7 @@
 #-*- coding:utf-8 -*-
 
 from django.shortcuts import render, get_object_or_404
+from django.contrib.auth import get_user_model
 
 from actors.models import Actor
 from .models import Article, ArticleComment, ArticleLike
@@ -25,6 +26,7 @@ class ArticleListView(APIView):
     def post(self, request):
         actorId = request.data['actorId']
         actor = get_object_or_404(Actor, id=actorId)
+        request.data['username'] = request.user.username
         serializer = ArticleSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save(user=request.user, actor=actor)
@@ -44,6 +46,16 @@ class ActorArticleListView(APIView):
     def get(self, request, actorId):
         actor = get_object_or_404(Actor, id=actorId)
         articles = actor.articles.all()
+        articles = sorted(articles, key=lambda article: article.popularity, reverse=True)
+        serializer = ArticleSerializer(articles, many=True)
+        return Response(serializer.data)
+
+class UserArticleListView(APIView):
+    # 유저 게시물
+     def get(self, request, user_id):
+        User = get_user_model()
+        user = get_object_or_404(User, id=user_id)
+        articles = user.articles.all()
         articles = sorted(articles, key=lambda article: article.popularity, reverse=True)
         serializer = ArticleSerializer(articles, many=True)
         return Response(serializer.data)
