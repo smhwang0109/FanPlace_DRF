@@ -17,6 +17,8 @@ class ArticleListView(APIView):
     def get(self, request):
         like_actors = Actor.objects.filter(like_users=request.user)
         articles = Article.objects.none()
+        for following in request.user.followings.all():
+            articles = articles.union(following.articles.all())
         for like_actor in like_actors:
             articles = articles.union(like_actor.articles.all())
         serializer = ArticleSerializer(articles.order_by('-created_at'), many=True)
