@@ -36,15 +36,12 @@ def actor_create(actor_id):
     else:
         name = data['name']
     
-    actor_data = {
-        'id': data['id'],
-        'name': name,
-        'birthday': data['birthday'],
-        'deathday': data['deathday'],
-        'gender': data['gender'],
-        'profile_path': data['profile_path'],
-        'popularity': data['popularity']
-    }
+    actor_data = {}
+    for attr in ['id', 'name', 'birthday', 'deathday', 'gender', 'profile_path', 'popularity']:
+        try:
+            actor_data[attr] = data[attr]
+        except:
+            pass
     serializer = ActorSerializer(data=actor_data)
     if serializer.is_valid(raise_exception=True):
         serializer.save()
