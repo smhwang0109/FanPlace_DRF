@@ -37,7 +37,8 @@ def actor_create(actor_id):
         name = data['name']
     
     actor_data = {}
-    for attr in ['id', 'name', 'birthday', 'deathday', 'gender', 'profile_path', 'popularity']:
+    actor_data['name'] = name
+    for attr in ['id', 'birthday', 'deathday', 'gender', 'profile_path', 'popularity']:
         try:
             actor_data[attr] = data[attr]
         except:
