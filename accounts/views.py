@@ -5,6 +5,9 @@ from .serializers import UserSerializer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from rest_framework.decorators import permission_classes
+from rest_framework.permissions import IsAuthenticated
+
 class MyAccountView(APIView):
     def get(self, request):
         user = request.user
@@ -19,6 +22,7 @@ class MyAccountView(APIView):
         serializer_data['followers_cnt'] = user.followers.count()
         serializer_data['followings_cnt'] = user.followings.count()
         return Response(serializer_data)
+
 
 class UserDetailView(APIView):
     def get(self, request, user_pk):
@@ -44,6 +48,7 @@ class UserDetailView(APIView):
         serializer_data['followings_cnt'] = user.followings.count()
         return Response(serializer_data)
 
+
 class UserFollowView(APIView):
     def post(self, request, to_user_pk):
         from_user = request.user
@@ -57,6 +62,7 @@ class UserFollowView(APIView):
             follow.to_user = to_user
             follow.save()
         return Response()
+
 
 class UserSearchView(APIView):
     def get(self, request, keyword):
