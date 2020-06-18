@@ -9,11 +9,11 @@ class Genre(models.Model):
 
 class Movie(models.Model):
     id = models.IntegerField(primary_key=True)
-    original_title = models.CharField(max_length=200, null=True)
-    overview = models.TextField(null=True, blank=True)
-    poster_path = models.TextField(null=True)
-    release_date = models.CharField(max_length=200, null=True)
-    popularity = models.FloatField(null=True)
+    original_title = models.CharField(max_length=200, null=True, default='제목이 없습니다. :(')
+    overview = models.TextField(null=True, blank=True, default='영화 설명이 없습니다. :(')
+    poster_path = models.TextField(null=True, default='noposter')
+    release_date = models.CharField(max_length=200, null=True, default='9999-99-99')
+    popularity = models.FloatField(null=True, default=0)
     actors = models.ManyToManyField(Actor, related_name='movies', through='MovieActor')
     genres = models.ManyToManyField(Genre, related_name='movies', through='MovieGenre')
 

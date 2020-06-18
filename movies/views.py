@@ -22,18 +22,16 @@ def movie_create(actorId):
     data = requests.get(f'https://api.themoviedb.org/3/person/{actorId}/movie_credits?api_key={API_KEY}&language=ko-KR').json()
     null = False
     for movie in data['cast']: # 영화별로 순회하면서
-        if not movie['poster_path']:
-            continue        
+        # if not movie['poster_path']:
+        #     continue
         if not Movie.objects.filter(id=movie['id']):
             # 1. 영화 기본정보 저장
-            movie_data = {
-                'id': movie['id'],
-                'original_title': movie['original_title'],
-                'overview': movie['overview'],
-                'poster_path': movie['poster_path'],
-                'release_date': movie['release_date'],
-                'popularity': movie['popularity']                
-            }
+            movie_data = dict()
+            for attr in ['id', 'original_title', 'overview', 'poster_path', 'release_date', 'popularity']:
+                try:
+                    movie_data[attr] = movie[attr]
+                except:
+                    pass
             serializer = MovieSerializer(data=movie_data)
             if serializer.is_valid(raise_exception=True):
                 serializer.save()
@@ -64,18 +62,15 @@ def movie_create(actorId):
 def movie_create_one(movieId):
     null = False
     data = requests.get(f'https://api.themoviedb.org/3/movie/{movieId}?api_key={API_KEY}&language=ko-KR').json()
-    if not data['poster_path']:
-        return Response()
-
+    # if not data['poster_path']:
+    #     return Response()
     if not Movie.objects.filter(id=movieId):
-        movie_data = {
-            'id': data['id'],
-            'original_title': data['original_title'],
-            'overview': data['overview'],
-            'poster_path': data['poster_path'],
-            'release_date': data['release_date'],
-            'popularity': data['popularity']                
-        }
+        movie_data = dict()
+        for attr in ['id', 'original_title', 'overview', 'poster_path', 'release_date', 'popularity']:
+            try:
+                movie_data[attr] = movie[attr]
+            except:
+                pass
         serializer = MovieSerializer(data=movie_data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
